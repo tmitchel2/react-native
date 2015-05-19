@@ -718,6 +718,7 @@ var Navigator = React.createClass({
     if (navBar && navBar.onAnimationStart) {
       navBar.onAnimationStart(fromIndex, toIndex);
     }
+    this.props.onAnimationStart && this.props.onAnimationStart(fromIndex, toIndex);
   },
 
   _onAnimationEnd: function() {
@@ -730,6 +731,7 @@ var Navigator = React.createClass({
     if (navBar && navBar.onAnimationEnd) {
       navBar.onAnimationEnd();
     }
+    this.props.onAnimationEnd && this.props.onAnimationEnd();
   },
 
   _setRenderSceneToHarwareTextureAndroid: function(sceneIndex, shouldRenderToHardwareTexture) {
