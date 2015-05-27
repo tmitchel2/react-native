@@ -42,7 +42,11 @@ var StaticContainer = React.createClass({
   },
 
   render: function() {
-    return onlyChild(this.props.children);
+    if (this.props.children) {
+      return onlyChild(this.props.children);
+    } else {
+      return null;
+    }
   }
 
 });
