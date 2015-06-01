@@ -38,7 +38,7 @@
   RCTAssert(!__LP64__, @"Snapshot tests should be run on 32-bit device simulators (e.g. iPhone 5)");
 #endif
   NSString *version = [[UIDevice currentDevice] systemVersion];
-  RCTAssert([version isEqualToString:@"8.1"], @"Snapshot tests should be run on iOS 8.1, found %@", version);
+  RCTAssert([version isEqualToString:@"8.3"], @"Snapshot tests should be run on iOS 8.3, found %@", version);
   _runner = RCTInitRunnerForApp(@"Examples/UIExplorer/UIExplorerApp");
 
   // If tests have changes, set recordMode = YES below and run the affected
@@ -74,11 +74,8 @@
 
     redboxError = [[RCTRedBox sharedInstance] currentErrorMessage];
     foundElement = [self findSubviewInView:vc.view matching:^(UIView *view) {
-      if ([view respondsToSelector:@selector(attributedText)]) {
-        NSString *text = [(id)view attributedText].string;
-        if ([text isEqualToString:@"<View>"]) {
-          return YES;
-        }
+      if ([view.accessibilityLabel isEqualToString:@"<View>"]) {
+        return YES;
       }
       return NO;
     }];

@@ -13,6 +13,7 @@
 #import "RCTLog.h"
 #import "RCTSparseArray.h"
 #import "RCTUtils.h"
+#import "UIView+React.h"
 
 typedef void (^RCTActionBlock)(RCTShadowView *shadowViewSelf, id value);
 typedef void (^RCTResetActionBlock)(RCTShadowView *shadowViewSelf);
@@ -166,22 +167,20 @@ static void RCTProcessMetaProps(const float metaProps[META_PROP_COUNT], float st
 
 - (NSDictionary *)processBackgroundColor:(NSMutableSet *)applierBlocks parentProperties:(NSDictionary *)parentProperties
 {
-  if (!_isBGColorExplicitlySet) {
+  if (!_backgroundColor) {
     UIColor *parentBackgroundColor = parentProperties[RCTBackgroundColorProp];
-    if (parentBackgroundColor && ![_backgroundColor isEqual:parentBackgroundColor]) {
-      _backgroundColor = parentBackgroundColor;
+    if (parentBackgroundColor) {
       [applierBlocks addObject:^(RCTSparseArray *viewRegistry) {
         UIView *view = viewRegistry[_reactTag];
-        view.backgroundColor = parentBackgroundColor;
+        [view reactSetInheritedBackgroundColor:parentBackgroundColor];
       }];
     }
-  }
-  if (_isBGColorExplicitlySet) {
+  } else {
     // Update parent properties for children
     NSMutableDictionary *properties = [NSMutableDictionary dictionaryWithDictionary:parentProperties];
     CGFloat alpha = CGColorGetAlpha(_backgroundColor.CGColor);
-    if (alpha < 1.0 && alpha > 0.0) {
-      // If we see partial transparency, start propagating full transparency
+    if (alpha < 1.0) {
+      // If bg is non-opaque, don't propagate further
       properties[RCTBackgroundColorProp] = [UIColor clearColor];
     } else {
       properties[RCTBackgroundColorProp] = _backgroundColor;
