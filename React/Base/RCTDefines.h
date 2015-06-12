@@ -19,6 +19,21 @@
 #endif
 
 /**
+ * Nullability for Xcode 6.2
+ */
+#if !__has_feature(nullability)
+#define NS_ASSUME_NONNULL_BEGIN
+#define NS_ASSUME_NONNULL_END
+#define nullable
+#define nonnull
+#define null_unspecified
+#define null_resettable
+#define __nullable
+#define __nonnull
+#define __null_unspecified
+#endif
+
+/**
  * The RCT_DEBUG macro can be used to exclude error checking and logging code
  * from release builds to improve performance and reduce binary size.
  */
@@ -59,3 +74,11 @@
 #define RCT_NSASSERT 0
 #endif
 #endif
+
+/**
+ * Concat two literals. Supports macro expansions
+ *
+ * i.e. RCT_CONCAT(foo, __FILE__)
+ */
+#define RCT_CONCAT2(A, B) A ## B
+#define RCT_CONCAT(A, B) RCT_CONCAT2(A, B)
