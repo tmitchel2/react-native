@@ -68,6 +68,8 @@
   NSThread *_javaScriptThread;
 }
 
+@synthesize valid = _valid;
+
 RCT_EXPORT_MODULE()
 
 /**
@@ -78,7 +80,7 @@ RCT_EXPORT_MODULE()
  * crashes.
  */
 
-static JSValueRef RCTNativeLoggingHook(JSContextRef context, JSObjectRef object, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+static JSValueRef RCTNativeLoggingHook(JSContextRef context, __unused JSObjectRef object, __unused JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
 {
   if (argumentCount > 0) {
     JSStringRef messageRef = JSValueToStringCopy(context, arguments[0], exception);
@@ -107,7 +109,7 @@ static JSValueRef RCTNativeLoggingHook(JSContextRef context, JSObjectRef object,
 }
 
 // Do-very-little native hook for testing.
-static JSValueRef RCTNoop(JSContextRef context, JSObjectRef object, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+static JSValueRef RCTNoop(JSContextRef context, __unused JSObjectRef object, __unused JSObjectRef thisObject, __unused size_t argumentCount, __unused const JSValueRef arguments[], __unused JSValueRef *exception)
 {
   static int counter = 0;
   counter++;
@@ -118,7 +120,7 @@ static JSValueRef RCTNoop(JSContextRef context, JSObjectRef object, JSObjectRef 
 
 static NSMutableArray *profiles;
 
-static JSValueRef RCTConsoleProfile(JSContextRef context, JSObjectRef object, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+static JSValueRef RCTConsoleProfile(JSContextRef context, __unused JSObjectRef object, __unused JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], __unused JSValueRef *exception)
 {
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
@@ -135,7 +137,7 @@ static JSValueRef RCTConsoleProfile(JSContextRef context, JSObjectRef object, JS
     profileName = [NSString stringWithFormat:@"Profile %d", profileCounter++];
   }
 
-  id profileInfo = [NSNull null];
+  id profileInfo = (id)kCFNull;
   if (argumentCount > 1 && !JSValueIsUndefined(context, arguments[1])) {
     profileInfo = @[RCTJSValueToNSString(context, arguments[1])];
   }
@@ -145,7 +147,7 @@ static JSValueRef RCTConsoleProfile(JSContextRef context, JSObjectRef object, JS
   return JSValueMakeUndefined(context);
 }
 
-static JSValueRef RCTConsoleProfileEnd(JSContextRef context, JSObjectRef object, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef *exception)
+static JSValueRef RCTConsoleProfileEnd(JSContextRef context, __unused JSObjectRef object, __unused JSObjectRef thisObject, __unused size_t argumentCount, __unused const JSValueRef arguments[], __unused JSValueRef *exception)
 {
   NSString *profileInfo = [profiles lastObject];
   [profiles removeLastObject];
@@ -153,6 +155,10 @@ static JSValueRef RCTConsoleProfileEnd(JSContextRef context, JSObjectRef object,
   [profiles removeLastObject];
   NSString *profileName = [profiles lastObject];
   [profiles removeLastObject];
+
+  if (argumentCount > 0 && !JSValueIsUndefined(context, arguments[0])) {
+    profileName = RCTJSValueToNSString(context, arguments[0]);
+  }
 
   _RCTProfileEndEvent(profileID, profileName, @"console", profileInfo);
 
@@ -224,6 +230,7 @@ static NSError *RCTNSErrorFromJSError(JSContextRef context, JSValueRef jsError)
             @"Can't initialize RCTContextExecutor without a javaScriptThread");
 
   if ((self = [super init])) {
+    _valid = YES;
     _javaScriptThread = javaScriptThread;
     __weak RCTContextExecutor *weakSelf = self;
     [self executeBlockOnJavaScriptQueue: ^{
@@ -248,12 +255,11 @@ static NSError *RCTNSErrorFromJSError(JSContextRef context, JSValueRef jsError)
   __weak RCTContextExecutor *weakSelf = self;
   [self executeBlockOnJavaScriptQueue:^{
     RCTContextExecutor *strongSelf = weakSelf;
-    if (!strongSelf) {
+    if (!strongSelf.isValid) {
       return;
     }
     if (!strongSelf->_context) {
       JSGlobalContextRef ctx = JSGlobalContextCreate(NULL);
-      JSGlobalContextRetain(ctx);
       strongSelf->_context = [[RCTJavaScriptContext alloc] initWithJSContext:ctx];
     }
     [strongSelf _addNativeHook:RCTNativeLoggingHook withName:"nativeLoggingHook"];
@@ -263,7 +269,7 @@ static NSError *RCTNSErrorFromJSError(JSContextRef context, JSValueRef jsError)
     [strongSelf _addNativeHook:RCTConsoleProfileEnd withName:"consoleProfileEnd"];
 
     for (NSString *event in @[RCTProfileDidStartProfiling, RCTProfileDidEndProfiling]) {
-      [[NSNotificationCenter defaultCenter] addObserver:self
+      [[NSNotificationCenter defaultCenter] addObserver:strongSelf
                                                selector:@selector(toggleProfilingFlag:)
                                                    name:event
                                                  object:nil];
@@ -297,18 +303,22 @@ static NSError *RCTNSErrorFromJSError(JSContextRef context, JSValueRef jsError)
 
 }
 
-- (BOOL)isValid
-{
-  return _context.isValid;
-}
-
 - (void)invalidate
 {
+  if (!self.isValid) {
+    return;
+  }
+
+  _valid = NO;
+
 #if RCT_DEV
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 #endif
 
-  [_context performSelector:@selector(invalidate) onThread:_javaScriptThread withObject:nil waitUntilDone:NO];
+  [_context performSelector:@selector(invalidate)
+                   onThread:_javaScriptThread
+                 withObject:nil
+              waitUntilDone:NO];
 }
 
 - (void)dealloc
@@ -355,7 +365,7 @@ static NSError *RCTNSErrorFromJSError(JSContextRef context, JSValueRef jsError)
       JSValueRef moduleJSRef = JSObjectCallAsFunction(contextJSRef, (JSObjectRef)requireJSRef, NULL, 1, (const JSValueRef *)&moduleNameJSRef, &errorJSRef);
       JSStringRelease(moduleNameJSStringRef);
 
-      if (moduleJSRef != NULL && errorJSRef == NULL) {
+      if (moduleJSRef != NULL && errorJSRef == NULL && !JSValueIsUndefined(contextJSRef, moduleJSRef)) {
 
         // get method
         JSStringRef methodNameJSStringRef = JSStringCreateWithCFString((__bridge CFStringRef)method);

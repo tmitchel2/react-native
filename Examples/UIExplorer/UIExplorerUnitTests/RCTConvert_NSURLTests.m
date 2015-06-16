@@ -13,7 +13,7 @@
 #define TEST_URL(name, _input, _expectedURL) \
 - (void)test_##name { \
   NSURL *result = [RCTConvert NSURL:_input]; \
-  NSURL *expected = [NSURL URLWithString:_expectedURL]; \
+  NSURL *expected = (_expectedURL) ? [NSURL URLWithString:_expectedURL ?: @""] : nil; \
   XCTAssertEqualObjects(result.absoluteURL, expected); \
 } \
 
@@ -28,7 +28,7 @@ TEST_PATH(name, _input, [[[NSBundle mainBundle] bundlePath] stringByAppendingPat
 
 // Basic tests
 TEST_URL(basic, @"http://example.com", @"http://example.com")
-TEST_URL(null, [NSNull null], nil)
+TEST_URL(null, (id)kCFNull, nil)
 
 // Local files
 TEST_PATH(fileURL, @"file:///blah/hello.jsbundle", @"/blah/hello.jsbundle")

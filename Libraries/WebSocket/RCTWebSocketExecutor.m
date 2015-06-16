@@ -43,7 +43,9 @@ RCT_EXPORT_MODULE()
 
 - (instancetype)initWithURL:(NSURL *)URL
 {
-  if (self = [super init]) {
+  RCTAssertParam(URL);
+
+  if ((self = [super init])) {
     _url = URL;
   }
   return self;
@@ -185,6 +187,15 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)executeBlockOnJavaScriptQueue:(dispatch_block_t)block
+{
+  if ([NSThread isMainThread]) {
+    block();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), block);
+  }
+}
+
+- (void)executeAsyncBlockOnJavaScriptQueue:(dispatch_block_t)block
 {
   dispatch_async(dispatch_get_main_queue(), block);
 }
