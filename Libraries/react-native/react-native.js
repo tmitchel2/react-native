@@ -73,6 +73,8 @@ var ReactNative = {
   get Settings() { return require('Settings'); },
   get StatusBarIOS() { return require('StatusBarIOS'); },
   get StyleSheet() { return require('StyleSheet'); },
+  get StyleSheetValidation() { return require('StyleSheetValidation'); },
+  get StyleSheetRegistry() { return require('StyleSheetRegistry'); },
   get UIManager() { return require('UIManager'); },
   get VibrationIOS() { return require('VibrationIOS'); },
 
@@ -100,7 +102,11 @@ var ReactNative = {
     get createFragment() { return require('ReactFragment').create; },
     get update() { return require('update'); },
   },
-  
+
+  tools: {
+    get invariant() { return require('invariant'); }
+  },
+
   // Note: this must be placed last to prevent eager
   // evaluation of the getter-wrapped submodules above
   ...require('React'),
@@ -108,11 +114,11 @@ var ReactNative = {
 
 if (__DEV__) {
   Object.defineProperty(ReactNative.addons, 'Perf', {
-    enumerable: true, 
+    enumerable: true,
     get: () => require('ReactDefaultPerf'),
   });
   Object.defineProperty(ReactNative.addons, 'TestUtils', {
-    enumerable: true, 
+    enumerable: true,
     get: () => require('ReactTestUtils'),
   });
 }
