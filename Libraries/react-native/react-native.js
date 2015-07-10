@@ -63,6 +63,8 @@ var ReactNative = Object.assign(Object.create(require('React')), {
   Settings: require('Settings'),
   StatusBarIOS: require('StatusBarIOS'),
   StyleSheet: require('StyleSheet'),
+  StyleSheetValidation: require('StyleSheetValidation'),
+  StyleSheetRegistry: require('StyleSheetRegistry'),
   VibrationIOS: require('VibrationIOS'),
 
   // Plugins
@@ -87,6 +89,10 @@ var ReactNative = Object.assign(Object.create(require('React')), {
     createFragment: require('ReactFragment').create,
     update: require('update'),
   },
+
+  tools: {
+    invariant: require('invariant')
+  }
 });
 
 if (__DEV__) {
