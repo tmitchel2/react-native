@@ -1004,7 +1004,8 @@ var Navigator = React.createClass({
   },
 
   getCurrentRoutes: function() {
-    return this.state.routeStack;
+    // Clone before returning to avoid caller mutating the stack
+    return this.state.routeStack.slice();
   },
 
   _handleItemRef: function(itemId, route, ref) {
