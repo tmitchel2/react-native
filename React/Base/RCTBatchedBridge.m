@@ -17,6 +17,7 @@
 #import "RCTJavaScriptLoader.h"
 #import "RCTLog.h"
 #import "RCTModuleData.h"
+#import "RCTModuleMap.h"
 #import "RCTModuleMethod.h"
 #import "RCTPerformanceLogger.h"
 #import "RCTPerfStats.h"
@@ -62,8 +63,8 @@ id<RCTJavaScriptExecutor> RCTGetLatestExecutor(void)
 {
   BOOL _loading;
   __weak id<RCTJavaScriptExecutor> _javaScriptExecutor;
-  NSMutableArray *_modules;
-  NSDictionary *_modulesByName;
+  NSMutableArray *_moduleDataByID;
+  RCTModuleMap *_modulesByName;
   CADisplayLink *_mainDisplayLink;
   CADisplayLink *_jsDisplayLink;
   NSMutableSet *_frameUpdateObservers;
@@ -89,7 +90,7 @@ id<RCTJavaScriptExecutor> RCTGetLatestExecutor(void)
      */
     _valid = YES;
     _loading = YES;
-    _modules = [[NSMutableArray alloc] init];
+    _moduleDataByID = [[NSMutableArray alloc] init];
     _frameUpdateObservers = [[NSMutableSet alloc] init];
     _scheduledCalls = [[NSMutableArray alloc] init];
     _scheduledCallbacks = [[RCTSparseArray alloc] init];
@@ -105,6 +106,13 @@ id<RCTJavaScriptExecutor> RCTGetLatestExecutor(void)
      * so we don't have threading issues
      */
     [self registerModules];
+
+    /**
+     * If currently profiling, hook into the current instance
+     */
+    if (RCTProfileIsProfiling()) {
+      RCTProfileHookModules(self);
+    }
 
     /**
      * Start the application script
@@ -159,7 +167,7 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
   }
 
   // Instantiate modules
-  _modules = [[NSMutableArray alloc] init];
+  _moduleDataByID = [[NSMutableArray alloc] init];
   NSMutableDictionary *modulesByName = [preregisteredModules mutableCopy];
   for (Class moduleClass in RCTGetModuleClasses()) {
      NSString *moduleName = RCTBridgeModuleNameForClass(moduleClass);
@@ -192,7 +200,7 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
   }
 
   // Store modules
-  _modulesByName = [modulesByName copy];
+  _modulesByName = [[RCTModuleMap alloc] initWithDictionary:modulesByName];
 
   /**
    * The executor is a bridge module, wait for it to be created and set it before
@@ -210,9 +218,9 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
     }
 
     RCTModuleData *moduleData = [[RCTModuleData alloc] initWithExecutor:_javaScriptExecutor
-                                                                  uid:@(_modules.count)
+                                                                  uid:@(_moduleDataByID.count)
                                                              instance:module];
-    [_modules addObject:moduleData];
+    [_moduleDataByID addObject:moduleData];
 
     if ([module conformsToProtocol:@protocol(RCTFrameUpdateObserver)]) {
       [_frameUpdateObservers addObject:moduleData];
@@ -229,24 +237,19 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
 
   // Inject module data into JS context
   NSMutableDictionary *config = [[NSMutableDictionary alloc] init];
-  for (RCTModuleData *moduleData in _modules) {
+  for (RCTModuleData *moduleData in _moduleDataByID) {
     config[moduleData.name] = moduleData.config;
   }
   NSString *configJSON = RCTJSONStringify(@{
     @"remoteModuleConfig": config,
   }, NULL);
-  dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
   [_javaScriptExecutor injectJSONText:configJSON
-                  asGlobalObjectNamed:@"__fbBatchedBridgeConfig" callback:
-   ^(NSError *error) {
-     if (error) {
-       [[RCTRedBox sharedInstance] showError:error];
-     }
-
-     dispatch_semaphore_signal(semaphore);
-   }];
-
-  dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW);
+                  asGlobalObjectNamed:@"__fbBatchedBridgeConfig"
+                             callback:^(NSError *error) {
+    if (error) {
+      [[RCTRedBox sharedInstance] showError:error];
+    }
+  }];
 
   NSURL *bundleURL = _parentBridge.bundleURL;
   if (_javaScriptExecutor == nil) {
@@ -273,14 +276,21 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
     RCTJavaScriptLoader *loader = [[RCTJavaScriptLoader alloc] initWithBridge:self];
     [loader loadBundleAtURL:bundleURL onComplete:^(NSError *error, NSString *script) {
       RCTPerformanceLoggerEnd(RCTPLScriptDownload);
-      RCTProfileEndEvent(@"JavaScript dowload", @"init,download", @[]);
+      RCTProfileEndEvent(@"JavaScript download", @"init,download", @[]);
 
       _loading = NO;
       if (!self.isValid) {
         return;
       }
 
-      [[RCTRedBox sharedInstance] dismiss];
+      static BOOL shouldDismiss = NO;
+      if (shouldDismiss) {
+        [[RCTRedBox sharedInstance] dismiss];
+      }
+      static dispatch_once_t onceToken;
+      dispatch_once(&onceToken, ^{
+        shouldDismiss = YES;
+      });
 
       RCTSourceCode *sourceCodeModule = self.modules[RCTBridgeModuleNameForClass([RCTSourceCode class])];
       sourceCodeModule.scriptURL = bundleURL;
@@ -349,53 +359,41 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
     RCTLatestExecutor = nil;
   }
 
-  void (^mainThreadInvalidate)(void) = ^{
-    RCTAssertMainThread();
+  [_mainDisplayLink invalidate];
+  _mainDisplayLink = nil;
 
-    [_mainDisplayLink invalidate];
-    _mainDisplayLink = nil;
-
-    // Invalidate modules
-    dispatch_group_t group = dispatch_group_create();
-    for (RCTModuleData *moduleData in _modules) {
-      if ([moduleData.instance respondsToSelector:@selector(invalidate)]) {
-        [moduleData dispatchBlock:^{
-          [(id<RCTInvalidating>)moduleData.instance invalidate];
-        } dispatchGroup:group];
-      }
-      moduleData.queue = nil;
+  // Invalidate modules
+  dispatch_group_t group = dispatch_group_create();
+  for (RCTModuleData *moduleData in _moduleDataByID) {
+    if (moduleData.instance == _javaScriptExecutor) {
+      continue;
     }
-    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-      _modules = nil;
-      _modulesByName = nil;
-      _frameUpdateObservers = nil;
-    });
-  };
 
-  if (!_javaScriptExecutor) {
-
-    // No JS thread running
-    mainThreadInvalidate();
-    return;
+    if ([moduleData.instance respondsToSelector:@selector(invalidate)]) {
+      [moduleData dispatchBlock:^{
+        [(id<RCTInvalidating>)moduleData.instance invalidate];
+      } dispatchGroup:group];
+    }
+    moduleData.queue = nil;
   }
 
-  [_javaScriptExecutor executeBlockOnJavaScriptQueue:^{
+  dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+    [_javaScriptExecutor executeBlockOnJavaScriptQueue:^{
+      [_jsDisplayLink invalidate];
+      _jsDisplayLink = nil;
 
-    /**
-     * JS Thread deallocations
-     */
-    [_javaScriptExecutor invalidate];
-    _javaScriptExecutor = nil;
+      [_javaScriptExecutor invalidate];
+      _javaScriptExecutor = nil;
 
-    [_jsDisplayLink invalidate];
-    _jsDisplayLink = nil;
+      if (RCTProfileIsProfiling()) {
+        RCTProfileUnhookModules(self);
+      }
+      _moduleDataByID = nil;
+      _modulesByName = nil;
+      _frameUpdateObservers = nil;
 
-    /**
-     * Main Thread deallocations
-     */
-    dispatch_async(dispatch_get_main_queue(), mainThreadInvalidate);
-
-  }];
+    }];
+  });
 }
 
 #pragma mark - RCTBridge methods
@@ -571,9 +569,15 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
     return;
   }
 
-  NSMapTable *buckets = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsStrongMemory capacity:_modules.count];
+  NSMapTable *buckets = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory
+                                                  valueOptions:NSPointerFunctionsStrongMemory
+                                                      capacity:_moduleDataByID.count];
   for (NSUInteger i = 0; i < numRequests; i++) {
-    RCTModuleData *moduleData = _modules[[moduleIDs[i] integerValue]];
+    RCTModuleData *moduleData = _moduleDataByID[[moduleIDs[i] integerValue]];
+    if (RCT_DEBUG) {
+      // verify that class has been registered
+      (void)_modulesByName[moduleData.name];
+    }
     NSMutableOrderedSet *set = [buckets objectForKey:moduleData];
     if (!set) {
       set = [[NSMutableOrderedSet alloc] init];
@@ -599,12 +603,13 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
                               params:paramsArrays[index]];
         }
       }
- RCTProfileEndEvent(RCTCurrentThreadName(), @"objc_call,dispatch_async", @{ @"calls": @(calls.count) });
+
+      RCTProfileEndEvent(RCTCurrentThreadName(), @"objc_call,dispatch_async", @{ @"calls": @(calls.count) });
     }];
   }
 
   // TODO: batchDidComplete is only used by RCTUIManager - can we eliminate this special case?
-  for (RCTModuleData *moduleData in _modules) {
+  for (RCTModuleData *moduleData in _moduleDataByID) {
     if ([moduleData.instance respondsToSelector:@selector(batchDidComplete)]) {
       [moduleData dispatchBlock:^{
         [moduleData.instance batchDidComplete];
@@ -627,10 +632,9 @@ RCT_NOT_IMPLEMENTED(-initWithBundleURL:(__unused NSURL *)bundleURL
     return NO;
   }
 
-
   RCTProfileBeginEvent();
 
-  RCTModuleData *moduleData = _modules[moduleID];
+  RCTModuleData *moduleData = _moduleDataByID[moduleID];
   if (RCT_DEBUG && !moduleData) {
     RCTLogError(@"No module found for id '%zd'", moduleID);
     return NO;
