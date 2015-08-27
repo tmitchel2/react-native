@@ -187,15 +187,17 @@ class Cache {
       }
       var record = cacheOnDisk[key];
       var stat = fs.statSync(key);
-      if (stat.mtime.getTime() === record.metadata.mtime) {
-        ret[key] = Object.create(null);
-        ret[key].metadata = Object.create(null);
-        ret[key].data = Object.create(null);
-        ret[key].metadata.mtime = record.metadata.mtime;
+      if (!!stat && !!record.metadata) {
+        if (stat.mtime.getTime() === record.metadata.mtime) {
+          ret[key] = Object.create(null);
+          ret[key].metadata = Object.create(null);
+          ret[key].data = Object.create(null);
+          ret[key].metadata.mtime = record.metadata.mtime;
 
-        Object.keys(record.data).forEach(field => {
-          ret[key].data[field] = Promise.resolve(record.data[field]);
-        });
+          Object.keys(record.data).forEach(field => {
+            ret[key].data[field] = Promise.resolve(record.data[field]);
+          });
+        }
       }
     });
 
