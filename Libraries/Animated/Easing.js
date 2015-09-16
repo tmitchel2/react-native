@@ -69,10 +69,7 @@ class Easing {
    *   http://tiny.cc/elastic_b_1 (default bounciness = 1)
    *   http://tiny.cc/elastic_b_3 (bounciness = 3)
    */
-  static elastic(bounciness: number): (t: number) => number {
-    if (arguments.length === 0) {
-      bounciness = 1;
-    }
+  static elastic(bounciness: number = 1): (t: number) => number {
     var p = bounciness * Math.PI;
     return (t) => 1 - Math.pow(Math.cos(t * Math.PI / 2), 3) * Math.cos(t * p);
   };
@@ -126,12 +123,18 @@ class Easing {
     return easing;
   }
 
+  /**
+   * Runs an easing function backwards.
+   */
   static out(
     easing: (t: number) => number,
   ): (t: number) => number {
     return (t) => 1 - easing(1 - t);
   }
 
+  /**
+   * Makes any easing function symmetrical.
+   */
   static inOut(
     easing: (t: number) => number,
   ): (t: number) => number {
@@ -145,5 +148,7 @@ class Easing {
 }
 
 var ease = Easing.bezier(0.42, 0, 1, 1);
+
+
 
 module.exports = Easing;

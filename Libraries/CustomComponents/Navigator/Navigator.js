@@ -692,6 +692,9 @@ var Navigator = React.createClass({
   },
 
   _handlePanResponderTerminate: function(e, gestureState) {
+    if (this.state.activeGesture == null) {
+      return;
+    }
     var destIndex = this.state.presentedIndex + this._deltaForGestureAction(this.state.activeGesture);
     this._detachGesture();
     var transitionBackToPresentedIndex = this.state.presentedIndex;

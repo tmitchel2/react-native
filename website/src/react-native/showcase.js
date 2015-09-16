@@ -19,6 +19,12 @@ var apps = [
     author: 'Alex Duckmanton',
   },
   {
+    name: 'Discord',
+    icon: 'http://a5.mzstatic.com/us/r30/Purple5/v4/c1/2f/4c/c12f4cba-1d9a-f6bf-2240-04085d3470ec/icon175x175.jpeg',
+    link:  'https://itunes.apple.com/us/app/discord-chat-for-gamers/id985746746?mt=8',
+    author: 'Hammer & Chisel',
+  },
+  {
     name: 'Discovery VR',
     icon: 'http://a2.mzstatic.com/us/r30/Purple6/v4/d1/d5/f4/d1d5f437-9f6b-b5aa-5fe7-47bd19f934bf/icon175x175.png',
     link:  'https://itunes.apple.com/us/app/discovery-vr/id1030815031?mt=8',
@@ -61,10 +67,22 @@ var apps = [
     author: 'Facebook',
   },
   {
+    name: 'FastPaper',
+    icon: 'http://a2.mzstatic.com/us/r30/Purple5/v4/72/b4/d8/72b4d866-90d2-3aad-d1dc-0315f2d9d045/icon350x350.jpeg',
+    link: 'https://itunes.apple.com/us/app/fast-paper/id1001174614',
+    author: 'Liubomyr Mykhalchenko (@liubko)',
+  },
+  {
     name: 'HSK Level 1 Chinese Flashcards',
     icon: 'http://is2.mzstatic.com/image/pf/us/r30/Purple1/v4/b2/4f/3a/b24f3ae3-2597-cc70-1040-731b425a5904/mzl.amxdcktl.jpg',
     link: 'https://itunes.apple.com/us/app/hsk-level-1-chinese-flashcards/id936639994',
     author: 'HS Schaaf',
+  },
+  {
+    name: 'Leanpub',
+    icon: 'http://a2.mzstatic.com/us/r30/Purple6/v4/9f/4a/6f/9f4a6f8c-8951-ed89-4083-74ace23df9ef/icon350x350.jpeg',
+    link: 'https://itunes.apple.com/us/app/leanpub/id913517110?ls=1&mt=8',
+    author: 'Leanpub',
   },
   {
     name: 'Lrn',
@@ -115,16 +133,40 @@ var apps = [
     author: 'Joshua Sierles',
   },
   {
+    name: 'SG Toto 4d',
+    icon: 'http://a4.mzstatic.com/us/r30/Purple7/v4/d2/bc/46/d2bc4696-84d6-9681-a49f-7f660d6b04a7/icon175x175.jpeg',
+    link: 'https://itunes.apple.com/us/app/sg-toto-4d/id1006371481?mt=8',
+    author: 'Steve Ng'
+  },
+  {
+    name: 'Spero for Cancer',
+    icon: 'https://s3-us-west-1.amazonaws.com/cancerspot/site_images/Spero1024.png',
+    link: 'https://geo.itunes.apple.com/us/app/spero-for-cancer/id1033923573?mt=8',
+    author: 'Spero.io',
+  },
+  {
     name: 'Start - medication manager for depression',
     icon: 'http://a1.mzstatic.com/us/r30/Purple49/v4/de/9b/6f/de9b6fe8-84ea-7a12-ba2c-0a6d6c7b10b0/icon175x175.png',
     link: 'https://itunes.apple.com/us/app/start-medication-manager-for/id1012099928?mt=8',
     author: 'Iodine Inc.',
   },
   {
+    name: 'Tabtor Parent',
+    icon: 'http://a1.mzstatic.com/us/r30/Purple4/v4/80/50/9d/80509d05-18f4-a0b8-0cbb-9ba927d04477/icon175x175.jpeg',
+    link: 'https://itunes.apple.com/us/app/tabtor-math/id1018651199?utm_source=ParentAppLP',
+    author: 'PrazAs Learning Inc.',
+  },
+  {
     name: 'Tong Xing Wang',
     icon: 'http://a3.mzstatic.com/us/r30/Purple1/v4/7d/52/a7/7d52a71f-9532-82a5-b92f-87076624fdb2/icon175x175.jpeg',
     link: 'https://itunes.apple.com/cn/app/tong-xing-wang/id914254459?mt=8',
     author: 'Ho Yin Tsun Eugene',
+  },
+  {
+    name: 'Yoloci',
+    icon: 'http://a5.mzstatic.com/eu/r30/Purple7/v4/fa/e5/26/fae52635-b97c-bd53-2ade-89e2a4326745/icon175x175.jpeg',
+    link: 'https://itunes.apple.com/de/app/yoloci/id991323225?mt=8',
+    author: 'Yonduva GmbH (@PhilippKrone)',
   },
   {
     name: 'youmeyou',

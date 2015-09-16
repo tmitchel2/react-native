@@ -15,7 +15,8 @@ const debug = require('debug')('ReactPackager:SocketServer');
 const fs = require('fs');
 const net = require('net');
 
-const MAX_IDLE_TIME = 10 * 60 * 1000;
+const MAX_IDLE_TIME = 30 * 1000;
+const MAX_STARTUP_TIME = 5 * 60 * 1000;
 
 class SocketServer {
   constructor(sockPath, options) {
@@ -35,13 +36,15 @@ class SocketServer {
         process.on('exit', () => fs.unlinkSync(sockPath));
       });
     });
+
+    this._numConnections = 0;
     this._server.on('connection', (sock) => this._handleConnection(sock));
 
     // Disable the file watcher.
     options.nonPersistent = true;
     this._packagerServer = new Server(options);
     this._jobs = 0;
-    this._dieEventually();
+    this._dieEventually(MAX_STARTUP_TIME);
   }
 
   onReady() {
@@ -50,10 +53,18 @@ class SocketServer {
 
   _handleConnection(sock) {
     debug('connection to server', process.pid);
+    this._numConnections++;
+    sock.on('close', () => this._numConnections--);
 
     const bunser = new bser.BunserBuf();
     sock.on('data', (buf) => bunser.append(buf));
     bunser.on('value', (m) => this._handleMessage(sock, m));
+    bunser.on('error', (e) => {
+      e.message = 'Unhandled error from the bser buffer. ' +
+                  'Either error on encoding or message handling: \n' +
+                  e.message;
+      throw e;
+    });
   }
 
   _handleMessage(sock, m) {
@@ -103,7 +114,6 @@ class SocketServer {
   _reply(sock, id, type, data) {
     debug('request finished', type);
 
-    this._jobs--;
     data = toJSON(data);
 
     sock.write(bser.dumpToBuffer({
@@ -111,17 +121,22 @@ class SocketServer {
       type,
       data,
     }));
+
+    // Debounce the kill timer to make sure all the bytes are sent through
+    // the socket and the client has time to fully finish and disconnect.
+    this._dieEventually();
+    this._jobs--;
   }
 
-  _dieEventually() {
+  _dieEventually(delay = MAX_IDLE_TIME) {
     clearTimeout(this._deathTimer);
     this._deathTimer = setTimeout(() => {
-      if (this._jobs <= 0) {
+      if (this._jobs <= 0 && this._numConnections <= 0) {
         debug('server dying', process.pid);
-        process.exit(1);
+        process.exit();
       }
       this._dieEventually();
-    }, MAX_IDLE_TIME);
+    }, delay);
   }
 
   static listenOnServerIPCMessages() {
@@ -142,7 +157,7 @@ class SocketServer {
           process.send({ type: 'createdServer' });
         },
         error => {
-          if (error.code === 'EADDRINUSE') {
+          if (error.code === 'EADDRINUSE' || error.code === 'EEXIST') {
             // Server already listening, this may happen if multiple
             // clients where started in quick succussion (buck).
             process.send({ type: 'createdServer' });
