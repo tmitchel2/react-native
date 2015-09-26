@@ -32,7 +32,6 @@ import com.facebook.react.views.text.ReactTextShadowNode;
 /* package */ class ReactTextInputShadowNode extends ReactTextShadowNode implements
     CSSNode.MeasureFunction {
 
-  public static final String PROP_TEXT_INPUT_MOST_RECENT_EVENT_COUNT = "mostRecentEventCount";
   private static final int MEASURE_SPEC = View.MeasureSpec.makeMeasureSpec(
       ViewGroup.LayoutParams.WRAP_CONTENT,
       View.MeasureSpec.UNSPECIFIED);
@@ -105,12 +104,13 @@ import com.facebook.react.views.text.ReactTextShadowNode;
       mFontSize = (int) Math.ceil(PixelUtil.toPixelFromSP(fontSize));
     }
 
-    if (styles.hasKey(PROP_TEXT_INPUT_MOST_RECENT_EVENT_COUNT)) {
-      mJsEventCount = styles.getInt(PROP_TEXT_INPUT_MOST_RECENT_EVENT_COUNT, 0);
+    if (styles.hasKey(ReactTextInputManager.PROP_TEXT_INPUT_MOST_RECENT_EVENT_COUNT)) {
+      mJsEventCount =
+          styles.getInt(ReactTextInputManager.PROP_TEXT_INPUT_MOST_RECENT_EVENT_COUNT, 0);
     }
 
-    if (styles.hasKey(ReactTextInputManager.PROP_TEXT_INPUT_NUMLINES)) {
-      mNumLines = styles.getInt(ReactTextInputManager.PROP_TEXT_INPUT_NUMLINES, UNSET);
+    if (styles.hasKey(ViewProps.NUMBER_OF_LINES)) {
+      mNumLines = styles.getInt(ViewProps.NUMBER_OF_LINES, UNSET);
     }
   }
 

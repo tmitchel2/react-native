@@ -8,22 +8,15 @@
  */
 'use strict';
 
-jest.dontMock('../index');
-jest.mock('fs');
+jest.dontMock('../index')
+    .mock('fs');
 
-const Promise = require('promise');
+var Promise = require('promise');
+var BundlesLayout = require('../index');
+var DependencyResolver = require('../../DependencyResolver');
+var loadCacheSync = require('../../lib/loadCacheSync');
 
 describe('BundlesLayout', () => {
-  let BundlesLayout;
-  let DependencyResolver;
-  let loadCacheSync;
-
-  beforeEach(() => {
-    BundlesLayout = require('../index');
-    DependencyResolver = require('../../DependencyResolver');
-    loadCacheSync = require('../../lib/loadCacheSync');
-  });
-
   function newBundlesLayout(options) {
     return new BundlesLayout(Object.assign({
       projectRoots: ['/root'],

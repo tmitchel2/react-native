@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.graphics.Rect;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
@@ -53,6 +54,7 @@ public class ReactEditText extends EditText {
   private int mNativeEventCount;
   private @Nullable ArrayList<TextWatcher> mListeners;
   private @Nullable TextWatcherDelegator mTextWatcherDelegator;
+  private int mStagedInputType;
 
   public ReactEditText(Context context) {
     super(context);
@@ -68,6 +70,7 @@ public class ReactEditText extends EditText {
     mIsJSSettingFocus = false;
     mListeners = null;
     mTextWatcherDelegator = null;
+    mStagedInputType = getInputType();
   }
 
   // After the text changes inside an EditText, TextView checks if a layout() has been requested.
@@ -85,7 +88,8 @@ public class ReactEditText extends EditText {
   // since we only allow JS to change focus, which in turn causes TextView to crash.
   @Override
   public boolean onKeyUp(int keyCode, KeyEvent event) {
-    if (keyCode == KeyEvent.KEYCODE_ENTER) {
+    if (keyCode == KeyEvent.KEYCODE_ENTER &&
+        ((getInputType() & InputType.TYPE_TEXT_FLAG_MULTI_LINE) == 0 )) {
       hideSoftKeyboard();
       return true;
     }
@@ -130,6 +134,26 @@ public class ReactEditText extends EditText {
         super.removeTextChangedListener(getTextWatcherDelegator());
       }
     }
+  }
+
+  /*protected*/ int getStagedInputType() {
+    return mStagedInputType;
+  }
+
+  /*package*/ void setStagedInputType(int stagedInputType) {
+    mStagedInputType = stagedInputType;
+  }
+
+  /*package*/ void commitStagedInputType() {
+    if (getInputType() != mStagedInputType) {
+      setInputType(mStagedInputType);
+    }
+  }
+
+  @Override
+  public void setInputType(int type) {
+    super.setInputType(type);
+    mStagedInputType = type;
   }
 
   /* package */ void requestFocusFromJS() {

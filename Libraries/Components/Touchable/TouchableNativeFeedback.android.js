@@ -21,6 +21,7 @@ var createReactNativeComponentClass = require('createReactNativeComponentClass')
 var createStrictShapeTypeChecker = require('createStrictShapeTypeChecker');
 var ensurePositiveDelayProps = require('ensurePositiveDelayProps');
 var onlyChild = require('onlyChild');
+var processColor = require('processColor');
 
 var rippleBackgroundPropType = createStrictShapeTypeChecker({
   type: React.PropTypes.oneOf(['RippleAndroid']),
@@ -69,7 +70,7 @@ var PRESS_RECT_OFFSET = {top: 20, left: 20, right: 20, bottom: 30};
  *       <View style={{width: 150, height: 100, backgroundColor: 'red'}}>
  *         <Text style={{margin: 30}}>Button</Text>
  *       </View>
- *     </TouchableHighlight>
+ *     </TouchableNativeFeedback>
  *   );
  * },
  * ```
@@ -94,7 +95,7 @@ var TouchableNativeFeedback = React.createClass({
      * selectable elements (?android:attr/selectableItemBackgroundBorderless).
      * Available on android API level 21+
      *
-     * 3) TouchableNativeFeedback.RippleAndroid(color, borderless) - will create
+     * 3) TouchableNativeFeedback.Ripple(color, borderless) - will create
      * object that represents ripple drawable with specified color (as a
      * string). If property `borderless` evaluates to true the ripple will
      * render outside of the view bounds (see native actionbar buttons as an
@@ -112,7 +113,7 @@ var TouchableNativeFeedback = React.createClass({
       return {type: 'ThemeAttrAndroid', attribute: 'selectableItemBackgroundBorderless'};
     },
     Ripple: function(color, borderless) {
-      return {type: 'RippleAndroid', color: color, borderless: borderless};
+      return {type: 'RippleAndroid', color: processColor(color), borderless: borderless};
     },
   },
 

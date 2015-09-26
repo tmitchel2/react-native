@@ -33,6 +33,8 @@ public class ReadableNativeMap extends NativeMap implements ReadableMap {
   @Override
   public native double getDouble(String name);
   @Override
+  public native int getInt(String name);
+  @Override
   public native String getString(String name);
   @Override
   public native ReadableNativeArray getArray(String name);
@@ -44,11 +46,6 @@ public class ReadableNativeMap extends NativeMap implements ReadableMap {
   @Override
   public ReadableMapKeySeyIterator keySetIterator() {
     return new ReadableNativeMapKeySeyIterator(this);
-  }
-
-  @Override
-  public int getInt(String name) {
-    return (int) getDouble(name);
   }
 
   /**

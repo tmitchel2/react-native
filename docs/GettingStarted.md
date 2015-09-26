@@ -10,12 +10,12 @@ next: android-setup
 ## Requirements
 
 1. OS X - Only OS X is currently supported
-2. [Homebrew](http://brew.sh/) is the recommended way to install nvm, watchman, and flow.
+2. [Homebrew](http://brew.sh/) is the recommended way to install Watchman and Flow.
 3. Install [Node.js](https://nodejs.org/) 4.0 or newer.
-  - Install **nvm** with Homebrew or [its setup instructions here](https://github.com/creationix/nvm#installation). Then run `nvm install node && nvm alias default node`, which installs the latest version of Node.js and sets up your terminal so you can run it by typing `node`. With nvm you can install multiple versions of Node.js and easily switch between them.
+  - Install **nvm** with [its setup instructions here](https://github.com/creationix/nvm#installation). Then run `nvm install node && nvm alias default node`, which installs the latest version of Node.js and sets up your terminal so you can run it by typing `node`. With nvm you can install multiple versions of Node.js and easily switch between them.
   - New to [npm](https://docs.npmjs.com/)?
 4. `brew install watchman`. We recommend installing [watchman](https://facebook.github.io/watchman/docs/install.html), otherwise you might hit a node file watching bug.
-5. `brew install flow`. If you want to use [flow](http://www.flowtype.org).
+5. `brew install flow`, if you want to use [flow](http://www.flowtype.org).
 
 We recommend periodically running `brew update && brew upgrade` to keep your programs up-to-date.
 
@@ -31,20 +31,21 @@ To write React Native apps for Android, you will need to install the Android SDK
 
     $ npm install -g react-native-cli
     $ react-native init AwesomeProject
-    $ cd AwesomeProject/
 
 **To run the iOS app:**
 
+- `$ cd AwesomeProject`
 - Open `ios/AwesomeProject.xcodeproj` and hit run in Xcode.
 - Open `index.ios.js` in your text editor of choice and edit some lines.
 - Hit ⌘-R in your iOS simulator to reload the app and see your change!
 
 **To run the Android app:**
 
-* `$ react-native run-android`
-* Open `index.android.js` in your text editor of choice and edit some lines.
-* Press the menu button (F2 by default, or ⌘-M in Genymotion) and select *Reload JS* to see your change!
-* Run `adb logcat *:S ReactNative:V ReactNativeJS:V` in a terminal to see your app's logs
+- `$ cd AwesomeProject`
+- `$ react-native run-android`
+- Open `index.android.js` in your text editor of choice and edit some lines.
+- Press the menu button (F2 by default, or ⌘-M in Genymotion) and select *Reload JS* to see your change!
+- Run `adb logcat *:S ReactNative:V ReactNativeJS:V` in a terminal to see your app's logs
 
 _Note: If you are using a device, see the [Running on Device page](http://facebook.github.io/react-native/docs/running-on-device-android.html#content)._
 

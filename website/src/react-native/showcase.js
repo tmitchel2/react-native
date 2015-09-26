@@ -73,6 +73,12 @@ var apps = [
     author: 'Liubomyr Mykhalchenko (@liubko)',
   },
   {
+    name: 'Hashley',
+    icon: 'http://a2.mzstatic.com/us/r30/Purple4/v4/5f/19/fc/5f19fc13-e7af-cd6b-6749-cedabdaeee7d/icon350x350.png',
+    link: 'https://itunes.apple.com/us/app/hashtag-by-hashley-ironic/id1022724462?mt=8',
+    author: 'Elephant, LLC',
+  },
+  {
     name: 'HSK Level 1 Chinese Flashcards',
     icon: 'http://is2.mzstatic.com/image/pf/us/r30/Purple1/v4/b2/4f/3a/b24f3ae3-2597-cc70-1040-731b425a5904/mzl.amxdcktl.jpg',
     link: 'https://itunes.apple.com/us/app/hsk-level-1-chinese-flashcards/id936639994',
@@ -173,6 +179,12 @@ var apps = [
     icon: 'http://is1.mzstatic.com/image/pf/us/r30/Purple7/v4/7c/42/30/7c423042-8945-7733-8af3-1523468706a8/mzl.qlecxphf.png',
     link: 'https://itunes.apple.com/us/app/youmeyou/id949540333?mt=8',
     author: 'youmeyou, LLC',
+  },
+  {
+    name: 'Ziliun',
+    icon: 'https://lh3.googleusercontent.com/c6ot13BVlU-xONcQi-llFmKXZCLRGbfrCv1RnctWtOELtPYMc0A52srXAfkU897QIg=w300',
+    link: 'https://play.google.com/store/apps/details?id=com.ziliunapp',
+    author: 'Sonny Lazuardi',
   },
 ];
 

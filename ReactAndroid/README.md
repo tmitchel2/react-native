@@ -15,6 +15,7 @@ Make sure you have the following installed:
 - Android SDK version 22 (compileSdkVersion in [`build.gradle`](build.gradle))
 - SDK build tools version 22.0.1 (buildToolsVersion in [`build.gradle`](build.gradle))
 - Android Support Repository 17 (for Android Support Library)
+- Android NDK (download & extraction instructions [here](http://developer.android.com/ndk/downloads/index.html))
  
 Point Gradle to your Android SDK: either have `$ANDROID_SDK` and `$ANDROID_NDK` defined, or create a `local.properties` file in the root of your `react-native` checkout with the following contents:
 
@@ -24,7 +25,7 @@ Point Gradle to your Android SDK: either have `$ANDROID_SDK` and `$ANDROID_NDK` 
 Example:
 
     sdk.dir=/Users/your_unix_name/android-sdk-macosx
-    ndk.dir=/Users/your_unix_name/android-ndk/android-ndk-r10c
+    ndk.dir=/Users/your_unix_name/android-ndk/android-ndk-r10e
 
 ## Run `npm install`
 

@@ -226,7 +226,7 @@ class ResolutionRequest {
         realModuleName => {
           const searchQueue = [];
           for (let currDir = path.dirname(fromModule.path);
-               currDir !== '/';
+               currDir !== path.parse(fromModule.path).root;
                currDir = path.dirname(currDir)) {
             searchQueue.push(
               path.join(currDir, 'node_modules', realModuleName)
@@ -252,6 +252,11 @@ class ResolutionRequest {
   _loadAsFile(potentialModulePath) {
     return Promise.resolve().then(() => {
       if (this._helpers.isAssetFile(potentialModulePath)) {
+        const dirname = path.dirname(potentialModulePath);
+        if (!this._fastfs.dirExists(dirname)) {
+          throw new UnableToResolveError(`Directory ${dirname} doesn't exist`);
+        }
+
         const {name, type} = getAssetDataFromName(potentialModulePath);
 
         let pattern = '^' + name + '(@[\\d\\.]+x)?';
@@ -263,7 +268,7 @@ class ResolutionRequest {
         // We arbitrarly grab the first one, because scale selection
         // will happen somewhere
         const [assetFile] = this._fastfs.matches(
-          path.dirname(potentialModulePath),
+          dirname,
           new RegExp(pattern)
         );
 

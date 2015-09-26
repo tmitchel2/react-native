@@ -16,16 +16,6 @@ var isAbsolutePath = require('absolute-path');
 
 var getFlowTypeCheckMiddleware = require('./getFlowTypeCheckMiddleware');
 
-if (!fs.existsSync(path.resolve(__dirname, '..', 'node_modules'))) {
-  console.log(
-    '\n' +
-    'Could not find dependencies.\n' +
-    'Ensure dependencies are installed - ' +
-    'run \'npm install\' from project root.\n'
-  );
-  process.exit();
-}
-
 var chalk = require('chalk');
 var connect = require('connect');
 var ReactPackager = require('./react-packager');
@@ -194,6 +184,12 @@ function getDevToolsLauncher(options) {
       var debuggerPath = path.join(__dirname, 'debugger.html');
       res.writeHead(200, {'Content-Type': 'text/html'});
       fs.createReadStream(debuggerPath).pipe(res);
+
+    } else if (req.url === '/debuggerWorker.js') {
+      var workerPath = path.join(__dirname, 'debuggerWorker.js');
+      res.writeHead(200, {'Content-Type': 'application/javascript'});
+      fs.createReadStream(workerPath).pipe(res);
+
     } else if (req.url === '/launch-chrome-devtools') {
       var debuggerURL = 'http://localhost:' + options.port + '/debugger-ui';
       var script = 'launchChromeDevTools.applescript';
@@ -230,9 +226,9 @@ function systraceProfileMiddleware(req, res, next) {
   }
 
   console.log('Dumping profile information...');
-  const dumpName = '/tmp/dump_' + Date.now() + '.json';
-  const prefix = process.env.TRACE_VIEWER_PATH || '';
-  const cmd = path.join(prefix, 'trace2html') + ' ' + dumpName;
+  var dumpName = '/tmp/dump_' + Date.now() + '.json';
+  var prefix = process.env.TRACE_VIEWER_PATH || '';
+  var cmd = path.join(prefix, 'trace2html') + ' ' + dumpName;
   fs.writeFileSync(dumpName, req.rawBody);
   childProcess.exec(cmd, function(error) {
     if (error) {
@@ -268,10 +264,10 @@ function cpuProfileMiddleware(req, res, next) {
   }
 
   console.log('Dumping CPU profile information...');
-  const dumpName = '/tmp/cpu-profile_' + Date.now();
+  var dumpName = '/tmp/cpu-profile_' + Date.now();
   fs.writeFileSync(dumpName + '.json', req.rawBody);
 
-  const cmd = path.join(__dirname, '..', 'JSCLegacyProfiler', 'json2trace') + ' -cpuprofiler ' + dumpName + '.cpuprofile ' + dumpName + '.json';
+  var cmd = path.join(__dirname, '..', 'JSCLegacyProfiler', 'json2trace') + ' -cpuprofiler ' + dumpName + '.cpuprofile ' + dumpName + '.json';
   childProcess.exec(cmd, function(error) {
     if (error) {
       console.error(error);
@@ -295,7 +291,7 @@ function getAppMiddleware(options) {
     nonPersistent: options.nonPersistent,
     projectRoots: options.projectRoots,
     blacklistRE: blacklist(),
-    cacheVersion: '2',
+    cacheVersion: '3',
     transformModulePath: transformerPath,
     assetRoots: options.assetRoots,
     assetExts: ['png', 'jpeg', 'jpg'],

@@ -64,7 +64,7 @@ public class CatalystStylesDiffMap {
   }
 
   public int getInt(String name, int restoreNullToDefaultValue) {
-    return mBackingMap.isNull(name) ? restoreNullToDefaultValue : (int) mBackingMap.getDouble(name);
+    return mBackingMap.isNull(name) ? restoreNullToDefaultValue : mBackingMap.getInt(name);
   }
 
   @Nullable
