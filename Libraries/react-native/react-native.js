@@ -35,6 +35,7 @@ var ReactNative = Object.assign(Object.create(require('React')), {
   SegmentedControlIOS: require('SegmentedControlIOS'),
   SliderIOS: require('SliderIOS'),
   SnapshotView: require('SnapshotView'),
+  Switch: require('Switch'),
   SwitchAndroid: require('SwitchAndroid'),
   SwitchIOS: require('SwitchIOS'),
   TabBarIOS: require('TabBarIOS'),
@@ -47,6 +48,7 @@ var ReactNative = Object.assign(Object.create(require('React')), {
   TouchableOpacity: require('TouchableOpacity'),
   TouchableWithoutFeedback: require('TouchableWithoutFeedback'),
   View: require('View'),
+  ViewPagerAndroid: require('ViewPagerAndroid'),
   WebView: require('WebView'),
 
   // APIs
