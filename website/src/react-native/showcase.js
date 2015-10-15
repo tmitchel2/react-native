@@ -97,6 +97,12 @@ var apps = [
     author: 'HS Schaaf',
   },
   {
+    name: 'Kakapo',
+    icon: 'http://a2.mzstatic.com/eu/r30/Purple3/v4/12/ab/2a/12ab2a01-3a3c-9482-b8df-ab38ad281165/icon175x175.png',
+    link: 'https://itunes.apple.com/gb/app/kakapo/id1046673139?ls=1&mt=8',
+    author: 'Daniel Levitt',
+  },
+  {
     name: 'Leanpub',
     icon: 'http://a2.mzstatic.com/us/r30/Purple6/v4/9f/4a/6f/9f4a6f8c-8951-ed89-4083-74ace23df9ef/icon350x350.jpeg',
     link: 'https://itunes.apple.com/us/app/leanpub/id913517110?ls=1&mt=8',
@@ -127,6 +133,12 @@ var apps = [
     author: 'wei ping woon',
   },
   {
+    name: 'Myntra',
+    icon: 'http://a5.mzstatic.com/us/r30/Purple6/v4/9c/78/df/9c78dfa6-0061-1af2-5026-3e1d5a073c94/icon350x350.png',
+    link: 'https://itunes.apple.com/in/app/myntra-fashion-shopping-app/id907394059',
+    author: 'Myntra Designs',
+  },
+  {
     name: 'Ncredible',
     icon: 'http://a3.mzstatic.com/us/r30/Purple2/v4/a9/00/74/a9007400-7ccf-df10-553b-3b6cb67f3f5f/icon350x350.png',
     link: 'https://itunes.apple.com/ca/app/ncredible/id1019662810?mt=8',
@@ -149,6 +161,12 @@ var apps = [
     icon: 'http://is2.mzstatic.com/image/pf/us/r30/Purple5/v4/e3/c8/79/e3c87934-70c6-4974-f20d-4adcfc68d71d/mzl.wevtbbkq.png',
     link: 'https://itunes.apple.com/us/app/reactto36/id989009293?mt=8',
     author: 'Jonathan Solichin',
+  },
+  {
+    name: 'RepairShopr',
+    icon: 'http://a3.mzstatic.com/us/r30/Purple69/v4/fa/96/ee/fa96ee57-c5f0-0c6f-1a34-64c9d3266b86/icon175x175.jpeg',
+    link: 'https://itunes.apple.com/us/app/repairshopr-payments-lite/id1023262888?mt=8',
+    author: 'Jed Tiotuico',
   },
   {
     name: 'RN Playground',

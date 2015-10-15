@@ -6,10 +6,16 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
-'use strict';
 
-require('./packager/babelRegisterOnly')([
-  /private-cli\/src/
-]);
+package com.facebook.perftest;
 
-module.exports = require('./local-cli/cli.js');
+/**
+ * PerfTestConfig stub.
+ */
+public class PerfTestConfig {
+
+  public boolean isRunningInPerfTest() {
+    return false;
+  }
+
+}
