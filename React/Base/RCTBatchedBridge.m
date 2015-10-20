@@ -63,6 +63,7 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
 {
   BOOL _loading;
   BOOL _valid;
+  BOOL _wasBatchActive;
   __weak id<RCTJavaScriptExecutor> _javaScriptExecutor;
   NSMutableArray *_pendingCalls;
   NSMutableArray *_moduleDataByID;
@@ -116,8 +117,8 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
   dispatch_group_t initModulesAndLoadSource = dispatch_group_create();
   dispatch_group_enter(initModulesAndLoadSource);
   __weak RCTBatchedBridge *weakSelf = self;
-  __block NSString *sourceCode;
-  [self loadSource:^(NSError *error, NSString *source) {
+  __block NSData *sourceCode;
+  [self loadSource:^(NSError *error, NSData *source) {
     if (error) {
       dispatch_async(dispatch_get_main_queue(), ^{
         [weakSelf stopLoadingWithError:error];
@@ -184,7 +185,7 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
   RCTPerformanceLoggerStart(RCTPLScriptDownload);
   int cookie = RCTProfileBeginAsyncEvent(0, @"JavaScript download", nil);
 
-  RCTSourceLoadBlock onSourceLoad = ^(NSError *error, NSString *source) {
+  RCTSourceLoadBlock onSourceLoad = ^(NSError *error, NSData *source) {
     RCTProfileEndAsyncEvent(0, @"init,download", cookie, @"JavaScript download", nil);
     RCTPerformanceLoggerEnd(RCTPLScriptDownload);
 
@@ -195,12 +196,13 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
 
     // Force JS __DEV__ value to match RCT_DEBUG
     if (shouldOverrideDev) {
-      NSRange range = [source rangeOfString:@"__DEV__="];
+      NSString *sourceString = [[NSString alloc] initWithData:source encoding:NSUTF8StringEncoding];
+      NSRange range = [sourceString rangeOfString:@"__DEV__="];
       RCTAssert(range.location != NSNotFound, @"It looks like the implementation"
                 "of __DEV__ has changed. Update -[RCTBatchedBridge loadSource:].");
       NSRange valueRange = {range.location + range.length, 2};
-      if ([[source substringWithRange:valueRange] isEqualToString:@"!1"]) {
-        source = [source stringByReplacingCharactersInRange:valueRange withString:@" 1"];
+      if ([[sourceString substringWithRange:valueRange] isEqualToString:@"!1"]) {
+        source = [[sourceString stringByReplacingCharactersInRange:valueRange withString:@" 1"] dataUsingEncoding:NSUTF8StringEncoding];
       }
     }
 
@@ -355,7 +357,7 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
                              callback:onComplete];
 }
 
-- (void)executeSourceCode:(NSString *)sourceCode
+- (void)executeSourceCode:(NSData *)sourceCode
 {
   if (!self.valid || !_javaScriptExecutor) {
     return;
@@ -363,7 +365,7 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
 
   RCTSourceCode *sourceCodeModule = self.modules[RCTBridgeModuleNameForClass([RCTSourceCode class])];
   sourceCodeModule.scriptURL = self.bundleURL;
-  sourceCodeModule.scriptText = sourceCode;
+  sourceCodeModule.scriptData = sourceCode;
 
   [self enqueueApplicationScript:sourceCode url:self.bundleURL onComplete:^(NSError *loadError) {
     if (!self.isValid) {
@@ -385,6 +387,7 @@ RCT_EXTERN NSArray *RCTGetModuleClasses(void);
     // timing issues with RCTRootView
     dispatch_async(dispatch_get_main_queue(), ^{
       [self didFinishLoading];
+
       [[NSNotificationCenter defaultCenter] postNotificationName:RCTJavaScriptDidLoadNotification
                                                           object:_parentBridge
                                                         userInfo:@{ @"bridge": self }];
@@ -585,7 +588,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithBundleURL:(__unused NSURL *)bundleUR
   }
 }
 
-- (void)enqueueApplicationScript:(NSString *)script
+- (void)enqueueApplicationScript:(NSData *)script
                              url:(NSURL *)url
                       onComplete:(RCTJavaScriptCompleteBlock)onComplete
 {
@@ -612,7 +615,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithBundleURL:(__unused NSURL *)bundleUR
          @"error": RCTNullIfNil(error),
        });
 
-       [self _handleBuffer:json];
+       [self handleBuffer:json batchEnded:YES];
 
        onComplete(error);
      }];
@@ -668,7 +671,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithBundleURL:(__unused NSURL *)bundleUR
       return;
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:RCTDequeueNotification object:nil userInfo:nil];
-    [self _handleBuffer:json];
+    [self handleBuffer:json batchEnded:YES];
   };
 
   [_javaScriptExecutor executeJSCall:module
@@ -679,14 +682,26 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithBundleURL:(__unused NSURL *)bundleUR
 
 #pragma mark - Payload Processing
 
-- (void)_handleBuffer:(id)buffer
+- (void)handleBuffer:(id)buffer batchEnded:(BOOL)batchEnded
 {
   RCTAssertJSThread();
 
-  if (buffer == nil || buffer == (id)kCFNull) {
-    return;
+  if (buffer != nil && buffer != (id)kCFNull) {
+    _wasBatchActive = YES;
+    [self handleBuffer:buffer];
   }
 
+  if (batchEnded) {
+    if (_wasBatchActive) {
+      [self batchDidComplete];
+    }
+
+    _wasBatchActive = NO;
+  }
+}
+
+- (void)handleBuffer:(id)buffer
+{
   NSArray *requestsArray = [RCTConvert NSArray:buffer];
 
 #if RCT_DEBUG
@@ -764,7 +779,10 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithBundleURL:(__unused NSURL *)bundleUR
       dispatch_async(queue, block);
     }
   }
+}
 
+- (void)batchDidComplete
+{
   // TODO: batchDidComplete is only used by RCTUIManager - can we eliminate this special case?
   for (RCTModuleData *moduleData in _moduleDataByID) {
     if ([moduleData.instance respondsToSelector:@selector(batchDidComplete)]) {

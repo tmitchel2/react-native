@@ -8,16 +8,14 @@ var config = {
   },
 
   getAssetRoots() {
-    // speficy where to look for assets
+    // Speficy where to look for assets that are referenced using `image!<image_name>`.
+    // Asset directories for images referenced using `./<image.extension>` don't require 
+    // any entry in here.
     return [];
   },
 
   getBlacklistRE(platform) {
     return blacklist(platform);
-  },
-
-  getTransformModulePath() {
-    return require.resolve('./node_modules/react-native/packager/transformer');
   }
 };
 

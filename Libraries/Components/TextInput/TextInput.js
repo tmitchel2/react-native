@@ -113,7 +113,7 @@ var TextInput = React.createClass({
     autoFocus: PropTypes.bool,
     /**
      * Set the position of the cursor from where editing will begin.
-     * @platorm android
+     * @platform android
      */
     textAlign: PropTypes.oneOf([
       'start',
