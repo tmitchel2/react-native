@@ -12,14 +12,11 @@ package com.facebook.react.bridge;
 import com.facebook.proguard.annotations.DoNotStrip;
 
 /**
- * Exception thrown by {@link ReadableMapKeySetIterator#nextKey()} when the iterator tries
- * to iterate over elements after the end of the key set.
+ * Interface of a iterator for a {@link NativeMap}'s key set.
  */
 @DoNotStrip
-public class InvalidIteratorException extends RuntimeException {
+public interface ReadableMapKeySetIterator {
 
-  @DoNotStrip
-  public InvalidIteratorException(String msg) {
-    super(msg);
-  }
+  boolean hasNextKey();
+  String nextKey();
 }
