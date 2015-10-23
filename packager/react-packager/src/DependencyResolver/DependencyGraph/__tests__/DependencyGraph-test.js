@@ -2337,6 +2337,89 @@ describe('DependencyGraph', function() {
       });
     });
 
+    pit('should not name module using @providesModule name if it\'s selectively ignored in node_modules', function() {
+      var root = '/root';
+      fs.__setMockFilesystem({
+        'root': {
+          'index.js': [
+            '/**',
+            ' * @providesModule index',
+            ' */',
+            'require("packageInsideReactTools")',
+            'require("npm-module");',
+          ].join('\n'),
+          'node_modules': {
+            'react-tools': {
+              'package.json': JSON.stringify({
+                name: 'react-tools',
+                main: 'main.js',
+              }),
+              'main.js': [
+                '/**',
+                ' * @providesModule packageInsideReactTools',
+                ' */',
+                'yo()',
+              ].join('\n')
+            },
+            'npm-module': {
+              'package.json': JSON.stringify({
+                name: 'npm-module',
+                main: 'main.js',
+              }),
+              'main.js':[
+                '/**',
+                ' * @providesModule HasteName',
+                ' */',
+                'hi();',
+              ].join('\n')
+            },
+          },
+        }
+      });
+
+      var dgraph = new DependencyGraph({
+        roots: [root],
+        fileWatcher: fileWatcher,
+        assetExts: ['png', 'jpg'],
+        cache: cache,
+      });
+      return getOrderedDependenciesAsJSON(dgraph, '/root/index.js').then(function(deps) {
+        expect(deps)
+          .toEqual([
+            {
+              id: 'index', // should be the haste name
+              path: '/root/index.js',
+              dependencies: ['packageInsideReactTools', 'npm-module'],
+              isAsset: false,
+              isAsset_DEPRECATED: false,
+              isJSON: false,
+              isPolyfill: false,
+              resolution: undefined,
+            },
+            {
+              id: 'packageInsideReactTools', // should be the haste name
+              path: '/root/node_modules/react-tools/main.js',
+              dependencies: [],
+              isAsset: false,
+              isAsset_DEPRECATED: false,
+              isJSON: false,
+              isPolyfill: false,
+              resolution: undefined,
+            },
+            {
+              id: 'npm-module/main.js', // shouldn't be the haste name
+              path: '/root/node_modules/npm-module/main.js',
+              dependencies: [],
+              isAsset: false,
+              isAsset_DEPRECATED: false,
+              isJSON: false,
+              isPolyfill: false,
+              resolution: undefined,
+            },
+          ]);
+      });
+    });
+
     pit('should not be confused by prev occuring whitelisted names', function() {
       var root = '/react-tools';
       fs.__setMockFilesystem({

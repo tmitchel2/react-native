@@ -22,6 +22,7 @@ jest
 var Fastfs = require('../fastfs');
 var Module = require('../Module');
 var ModuleCache = require('../ModuleCache');
+var Helpers = require('../DependencyGraph/Helpers');
 var Promise = require('promise');
 var fs = require('fs');
 var FileWatcher = require('../../FileWatcher');
@@ -39,7 +40,7 @@ describe('Module', () => {
       );
 
       return fastfs.build().then(() => {
-        var module = new Module('/root/index.js', fastfs, new ModuleCache(fastfs));
+        var module = new Module('/root/index.js', fastfs, new ModuleCache(fastfs), null, new Helpers());
 
         return module.getAsyncDependencies().then(actual =>
           expect(actual).toEqual(expected)
