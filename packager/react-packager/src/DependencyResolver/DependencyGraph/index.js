@@ -107,7 +107,7 @@ class DependencyGraph {
 
     this._fastfs.on('change', this._processFileChange.bind(this));
 
-    this._moduleCache = new ModuleCache(this._fastfs, this._cache);
+    this._moduleCache = new ModuleCache(this._fastfs, this._cache, this._helpers);
 
     this._hasteMap = new HasteMap({
       fastfs: this._fastfs,

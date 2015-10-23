@@ -15,7 +15,7 @@ const replacePatterns = require('./replacePatterns');
 
 class Module {
 
-  constructor(file, fastfs, moduleCache, cache) {
+  constructor(file, fastfs, moduleCache, cache, helpers) {
     if (!isAbsolutePath(file)) {
       throw new Error('Expected file to be absolute path but got ' + file);
     }
@@ -26,6 +26,7 @@ class Module {
     this._fastfs = fastfs;
     this._moduleCache = moduleCache;
     this._cache = cache;
+    this._helpers = helpers;
   }
 
   isHaste() {
@@ -85,7 +86,7 @@ class Module {
       this._reading = this._fastfs.readFile(this.path).then(content => {
         const data = {};
         const moduleDocBlock = docblock.parseAsObject(content);
-        if (moduleDocBlock.providesModule || moduleDocBlock.provides) {
+        if (!this._helpers.isNodeModulesDir(this.path) && (moduleDocBlock.providesModule || moduleDocBlock.provides)) {
           data.id = /^(\S*)/.exec(
             moduleDocBlock.providesModule || moduleDocBlock.provides
           )[1];
