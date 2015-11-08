@@ -80,10 +80,10 @@ RCT_CUSTOM_VIEW_PROPERTY(region, MKCoordinateRegion, RCTMap)
     return nil;
   }
 
-  MKPinAnnotationView *annotationView = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"RCTAnnotation"];
+  MKAnnotationView *annotationView = [[MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"RCTAnnotation"];
+  annotationView.image = annotation.image;
 
   annotationView.canShowCallout = true;
-  annotationView.animatesDrop = annotation.animateDrop;
 
   annotationView.leftCalloutAccessoryView = nil;
   if (annotation.hasLeftCallout) {

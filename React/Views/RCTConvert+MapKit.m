@@ -54,6 +54,7 @@ RCT_ENUM_CONVERTER(MKMapType, (@{
 {
   json = [self NSDictionary:json];
   RCTPointAnnotation *shape = [RCTPointAnnotation new];
+  shape.image = [RCTConvert UIImage:json[@"image"]];
   shape.coordinate = [self CLLocationCoordinate2D:json];
   shape.title = [RCTConvert NSString:json[@"title"]];
   shape.subtitle = [RCTConvert NSString:json[@"subtitle"]];
