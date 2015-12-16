@@ -233,7 +233,10 @@ RCT_EXPORT_METHOD(getCurrentPosition:(RCTLocationOptions)options
                                                         selector:@selector(timeout:)
                                                         userInfo:request
                                                          repeats:NO];
-  _pendingRequests = [NSMutableArray new];
+  
+  if (!_pendingRequests) {
+    _pendingRequests = [NSMutableArray new];
+  }
   [_pendingRequests addObject:request];
 
   // Configure location manager and begin updating location
