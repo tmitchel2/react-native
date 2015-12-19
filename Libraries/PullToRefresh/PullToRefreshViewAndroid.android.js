@@ -23,6 +23,9 @@ var NATIVE_REF = 'native_swiperefreshlayout';
 /**
  * React view that supports a single scrollable child view (e.g. `ScrollView`). When this child
  * view is at `scrollY: 0`, swiping down triggers an `onRefresh` event.
+ * 
+ * The style `{flex: 1}` might be required to ensure the expected behavior of the child component
+ * (e.g. when the child is expected to scroll with `ScrollView` or `ListView`).
  */
 var PullToRefreshViewAndroid = React.createClass({
   statics: {
@@ -55,6 +58,10 @@ var PullToRefreshViewAndroid = React.createClass({
 
   getInnerViewNode: function() {
     return this.refs[NATIVE_REF];
+  },
+
+  setNativeProps: function(props) {
+    return this.refs[NATIVE_REF].setNativeProps(props);
   },
 
   render: function() {

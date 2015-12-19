@@ -198,6 +198,7 @@ var components = [
   '../Libraries/Picker/PickerIOS.ios.js',
   '../Libraries/Components/ProgressBarAndroid/ProgressBarAndroid.android.js',
   '../Libraries/Components/ProgressViewIOS/ProgressViewIOS.ios.js',
+  '../Libraries/PullToRefresh/PullToRefreshViewAndroid.android.js',
   '../Libraries/Components/ScrollView/ScrollView.js',
   '../Libraries/Components/SegmentedControlIOS/SegmentedControlIOS.ios.js',
   '../Libraries/Components/SliderIOS/SliderIOS.ios.js',
@@ -219,6 +220,7 @@ var components = [
 
 var apis = [
   '../Libraries/ActionSheetIOS/ActionSheetIOS.js',
+  '../Libraries/Utilities/Alert.js',
   '../Libraries/Utilities/AlertIOS.js',
   '../Libraries/Animated/src/AnimatedImplementation.js',
   '../Libraries/AppRegistry/AppRegistry.js',
@@ -227,6 +229,7 @@ var apis = [
   '../Libraries/Utilities/BackAndroid.android.js',
   '../Libraries/CameraRoll/CameraRoll.js',
   '../Libraries/Utilities/Dimensions.js',
+  '../Libraries/Components/Intent/IntentAndroid.android.js',
   '../Libraries/Interaction/InteractionManager.js',
   '../Libraries/LayoutAnimation/LayoutAnimation.js',
   '../Libraries/LinkingIOS/LinkingIOS.js',

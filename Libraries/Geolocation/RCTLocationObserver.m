@@ -233,7 +233,6 @@ RCT_EXPORT_METHOD(getCurrentPosition:(RCTLocationOptions)options
                                                         selector:@selector(timeout:)
                                                         userInfo:request
                                                          repeats:NO];
-  
   if (!_pendingRequests) {
     _pendingRequests = [NSMutableArray new];
   }
